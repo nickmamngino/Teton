@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SILAC Teton Tracker</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; background: #f9f9f9; }
+    h1 { color: #2c3e50; }
+    .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>SILAC Teton Tracker</h1>
+  <div class="card">
+    <p><strong>Latest S&P 500 Close:</strong> <span id="price">Loading...</span></p>
+    <p><strong>Credited Gain (50% Participation):</strong> <span id="gain">Loading...</span></p>
+    <p><strong>Protected Account Value:</strong> <span id="value">Loading...</span></p>
+    <p><strong>Current Floor:</strong> <span id="floor">Loading...</span></p>
+    <p><strong>Next Reset:</strong> May 7, <span id="nextYear"></span></p>
+  </div>
+  <script>
+    const PARTICIPATION = 0.5;
+    const INITIAL_VALUE = 350000;
+    const START_INDEX = 5178.51;
+
+    document.getElementById('nextYear').innerText = new Date().getFullYear() + 1;
+
+    fetch("https://query1.finance.yahoo.com/v8/finance/chart/^GSPC?interval=1d&range=5d")
+      .then(res => res.json())
+      .then(data => {
+        const prices = data.chart.result[0].indicators.adjclose[0].adjclose;
+        const lastPrice = prices[prices.length - 1];
+        const gain = Math.max(0, (lastPrice - START_INDEX) / START_INDEX);
+        const creditedValue = INITIAL_VALUE * (1 + gain * PARTICIPATION);
+
+        document.getElementById('price').innerText = lastPrice.toFixed(2);
+        document.getElementById('gain').innerText = (gain * 100).toFixed(2) + '%';
+        document.getElementById('value').innerText = '$' + creditedValue.toFixed(2).toLocaleString();
+        document.getElementById('floor').innerText = '$' + INITIAL_VALUE.toLocaleString();
+      })
+      .catch(err => {
+        document.getElementById('price').innerText = 'Unavailable';
+        document.getElementById('gain').innerText = 'Unavailable';
+        document.getElementById('value').innerText = 'Unavailable';
+        document.getElementById('floor').innerText = 'Unavailable';
+      });
+  </script>
+</body>
+</html>
